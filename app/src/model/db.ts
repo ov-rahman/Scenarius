@@ -31,7 +31,7 @@ class ScenariusDb extends Dexie {
     super('scenarius')
     this.version(1).stores({
       projects: 'id, updatedAt',
-      storylines: 'id, projectId, order',
+      storylines: 'id, projectId, parentId, order',
       nodes: 'id, projectId, storylineId, kind, updatedAt',
       links: 'id, projectId, from, to, kind',
       facts: 'id, projectId, face, originNodeId, characterId, payoffNodeId',
