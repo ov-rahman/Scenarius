@@ -432,21 +432,7 @@ input {
   border-bottom: 1px solid var(--line);
 }
 
-/* ── Телефон ────────────────────────────────────────────────────────────── */
 
-@media (max-width: 720px) {
-  .content {
-    padding: 1.25rem 1rem 6rem;
-  }
-
-  .scene::before {
-    left: -0.6rem;
-  }
-
-  .graph {
-    height: calc(100vh - 3.25rem);
-  }
-}
 
 /* ── Рабочая область ────────────────────────────────────────────────────── */
 
@@ -467,11 +453,8 @@ input {
   margin: 0;
 }
 
-@media (max-width: 900px) {
-  .workspace {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-  }
+.dock {
+  min-width: 0;
 }
 
 /* ── Панель фактов ──────────────────────────────────────────────────────── */
@@ -885,4 +868,125 @@ input {
 
 .bubble button:hover {
   color: var(--accent);
+}
+
+/* ── Телефон ────────────────────────────────────────────────────────────── */
+
+/*
+ * Одна колонка, нижняя навигация, контекстная панель приезжает шторкой снизу.
+ * Это не урезанная версия: писать, заводить факты и персонажей можно всё то же,
+ * недоступна только перестройка графа пальцем.
+ */
+@media (max-width: 900px) {
+  .content {
+    padding: 1.25rem 1rem 5.5rem;
+  }
+
+  .workspace {
+    display: block;
+  }
+
+  .scene::before {
+    left: -0.6rem;
+  }
+
+  /*
+   * Никаких вычислений высоты: экран — колонка из шапки, содержимого и нижней
+   * навигации. Подбирать числом высоту панели бессмысленно — она зависит от
+   * безопасной зоны устройства, и граф всё равно уезжал бы под кнопки.
+   */
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+  }
+
+  .content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .graph {
+    height: 100%;
+  }
+
+  .dock {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 30;
+    max-height: 72dvh;
+    /* Навигация непрозрачна и лежит поверх шторки, поэтому нижняя часть
+       шторки уходит под неё — компенсируем отступом. */
+    padding: 0.5rem 1rem 4.25rem;
+    overflow-y: auto;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 30px rgb(0 0 0 / 12%);
+    transform: translateY(101%);
+    transition: transform 0.22s ease;
+  }
+
+  .dock.is-open {
+    transform: translateY(0);
+  }
+
+  .dock__grip {
+    display: block;
+    width: 2.5rem;
+    height: 4px;
+    margin: 0.15rem auto 0.6rem;
+    background: var(--line);
+    border-radius: 2px;
+  }
+
+  .panel {
+    position: static;
+  }
+
+  /* Затемнение под шторкой: тап мимо закрывает её. */
+  .scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    width: 100%;
+    background: rgb(0 0 0 / 25%);
+  }
+
+  /* Нижняя навигация вместо плавающей пилюли — и она же больше не накрывает
+     нижний узел графа, потому что перестала висеть поверх холста. */
+  .modes {
+    position: relative;
+    /* Сбрасываем позиционирование плавающей пилюли: без этого left: 50%
+       от десктопного правила уводит панель за правый край экрана. */
+    left: auto;
+    z-index: 35;
+    flex: none;
+    justify-content: center;
+    padding: 0.4rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom));
+    border: none;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .modes button {
+    flex: 1;
+    max-width: 8rem;
+    text-align: center;
+  }
+
+  .card {
+    right: 1rem;
+    left: 1rem !important;
+    width: auto;
+  }
+
+  .mention-menu {
+    max-width: calc(100vw - 2rem);
+  }
 }

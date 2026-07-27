@@ -6,7 +6,7 @@
  *   npx vite preview --port 4173 &
  *   node scripts/smoke.mjs
  */
-import { chromium } from 'playwright-core'
+import { chromium, devices } from 'playwright-core'
 
 const URL = process.env.SMOKE_URL ?? 'http://localhost:4173/'
 const EXECUTABLE =
@@ -214,6 +214,94 @@ check(
 )
 
 check('ошибок в консоли нет', consoleErrors, [])
+
+// ─── Телефон ─────────────────────────────────────────────────────────────────
+
+/*
+ * Мобильная версия не урезана: пишем, заводим факты, смотрим граф.
+ * Проверяем именно геометрию — раскладка на телефоне ломается тихо,
+ * элемент просто уезжает за край, и в обычном прогоне это незаметно.
+ */
+const phone = await browser.newContext({ ...devices['Pixel 7'] })
+const small = await phone.newPage()
+const phoneErrors = []
+small.on('pageerror', (e) => phoneErrors.push(String(e)))
+small.on('console', (m) => m.type() === 'error' && phoneErrors.push(m.text()))
+
+await small.goto(URL, { waitUntil: 'networkidle' })
+await small.fill('.projects__new input', 'Телефон')
+await small.tap('.projects__new button')
+await small.waitForSelector('.scene')
+
+await small.locator('.scene__body .tiptap').first().tap()
+await small.keyboard.type('Снег скрипит под ногами.')
+await small.waitForTimeout(400)
+check(
+  'на телефоне пишется',
+  (await small.locator('.scene__body').first().innerText()).trim(),
+  'Снег скрипит под ногами.',
+)
+
+check(
+  'плюсик виден без наведения',
+  await small
+    .locator('.inserter__actions')
+    .first()
+    .evaluate((el) => getComputedStyle(el).opacity),
+  '1',
+)
+
+const viewport = small.viewportSize()
+const nav = await small.locator('.modes').boundingBox()
+check('навигация помещается в экран', nav.x >= 0 && nav.x + nav.width <= viewport.width, true)
+
+for (const button of await small.locator('.modes button').all()) {
+  const box = await button.boundingBox()
+  check(
+    `кнопка «${await button.innerText()}» в экране`,
+    box.x + box.width <= viewport.width,
+    true,
+  )
+}
+
+await small.tap('.modes button:has-text("панель")')
+await small.waitForTimeout(500)
+check('шторка открылась', await small.locator('.dock.is-open').count(), 1)
+
+const addButton = await small.locator('.panel__add button').boundingBox()
+check('содержимое шторки выше навигации', addButton.y + addButton.height <= nav.y, true)
+
+await small.locator('.panel__add input').fill('Пощадил Папируса')
+await small.locator('.panel__add button').tap()
+await small.waitForTimeout(300)
+check('факт заведён со шторки', await small.locator('.panel__list li').count(), 1)
+
+await small.tap('.scrim', { position: { x: 40, y: 40 } })
+await small.waitForTimeout(400)
+check('тап мимо закрыл шторку', await small.locator('.dock.is-open').count(), 0)
+
+await small.tap('.modes button:has-text("структура")')
+await small.waitForSelector('.react-flow__controls')
+await small.waitForTimeout(500)
+const controls = await small.locator('.react-flow__controls').boundingBox()
+check('кнопки масштаба не под навигацией', controls.y + controls.height <= nav.y + 1, true)
+check(
+  'узлы не таскаются пальцем',
+  await small
+    .locator('.react-flow__node')
+    .first()
+    .evaluate((el) => el.className.includes('draggable')),
+  false,
+)
+check(
+  'горизонтальной прокрутки нет',
+  await small.evaluate(
+    () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+  ),
+  true,
+)
+
+check('ошибок в консоли телефона нет', phoneErrors, [])
 
 await browser.close()
 

@@ -15,6 +15,7 @@ import { buildPath, isSetupClosed } from '../model/path'
 import { storylineDepth, storylineWeight } from '../model/storylines'
 import type { Id, Link, StoryNode, Storyline } from '../model/types'
 import { useStore } from '../store/useStore'
+import { useTouch } from './useTouch'
 
 const NODE_WIDTH = 190
 const NODE_HEIGHT = 56
@@ -41,6 +42,7 @@ export function Graph() {
   const setViewMode = useStore((s) => s.setViewMode)
 
   const [filter, setFilter] = useState<Filter>({ kind: 'all' })
+  const touch = useTouch()
 
   const steps = useMemo(
     () => buildPath(nodes, links, facts, { startNodeId, choices }),
@@ -118,6 +120,9 @@ export function Graph() {
           nodeTypes={nodeTypes}
           fitView
           fitViewOptions={{ padding: 0.2 }}
+          /* На телефоне граф только смотрят: перетаскивание пальцем в первую
+             версию не входит, а случайный сдвиг узла при панораме — входит. */
+          nodesDraggable={!touch}
           minZoom={0.1}
           proOptions={{ hideAttribution: true }}
           onNodeClick={(_, node) => focusNode(node.id)}

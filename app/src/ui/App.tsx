@@ -4,6 +4,7 @@ import { CharacterCard } from './CharacterCard'
 import { FactsPanel } from './FactsPanel'
 import { Graph } from './Graph'
 import { Ribbon } from './Ribbon'
+import { useNarrow } from './useTouch'
 
 export function App() {
   const ready = useStore((s) => s.ready)
@@ -15,6 +16,8 @@ export function App() {
   const closeProject = useStore((s) => s.closeProject)
   const viewMode = useStore((s) => s.viewMode)
   const setViewMode = useStore((s) => s.setViewMode)
+  const narrow = useNarrow()
+  const [sheet, setSheet] = useState(false)
 
   useEffect(() => {
     void init()
@@ -66,7 +69,18 @@ export function App() {
         {projectId && viewMode === 'write' && (
           <div className="workspace">
             <Ribbon />
-            <FactsPanel />
+            {/* На узком экране та же панель приезжает снизу шторкой. */}
+            <div className={`dock${sheet ? ' is-open' : ''}`}>
+              {narrow && (
+                <button
+                  type="button"
+                  className="dock__grip"
+                  onClick={() => setSheet(false)}
+                  aria-label="Закрыть панель"
+                />
+              )}
+              <FactsPanel />
+            </div>
             <CharacterCard />
           </div>
         )}
@@ -76,19 +90,43 @@ export function App() {
         <nav className="modes">
           <button
             type="button"
-            className={viewMode === 'write' ? 'is-on' : ''}
-            onClick={() => setViewMode('write')}
+            className={viewMode === 'write' && !sheet ? 'is-on' : ''}
+            onClick={() => {
+              setViewMode('write')
+              setSheet(false)
+            }}
           >
             письмо
           </button>
           <button
             type="button"
             className={viewMode === 'graph' ? 'is-on' : ''}
-            onClick={() => setViewMode('graph')}
+            onClick={() => {
+              setViewMode('graph')
+              setSheet(false)
+            }}
           >
             структура
           </button>
+          {narrow && viewMode === 'write' && (
+            <button
+              type="button"
+              className={sheet ? 'is-on' : ''}
+              onClick={() => setSheet((open) => !open)}
+            >
+              панель
+            </button>
+          )}
         </nav>
+      )}
+
+      {narrow && sheet && (
+        <button
+          type="button"
+          className="scrim"
+          onClick={() => setSheet(false)}
+          aria-label="Закрыть панель"
+        />
       )}
     </div>
   )
