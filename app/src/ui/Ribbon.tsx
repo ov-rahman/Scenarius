@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { buildPath, type PathStep } from '../model/path'
 import { useStore } from '../store/useStore'
 import { SceneEditor } from './SceneEditor'
@@ -26,6 +26,17 @@ export function Ribbon() {
 
   const nodeById = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes])
 
+  // Пришли из графа двойным кликом — подматываем ленту к нужной сцене.
+  // Эффект на монтировании, а не на focusedNodeId: иначе лента дёргалась бы
+  // при каждой постановке курсора.
+  useEffect(() => {
+    const target = useStore.getState().focusedNodeId
+    if (!target) return
+    document
+      .querySelector(`[data-node-id="${target}"]`)
+      ?.scrollIntoView({ block: 'center' })
+  }, [])
+
   if (steps.length === 0) {
     return <p className="ribbon__empty">Сцен пока нет.</p>
   }
@@ -39,7 +50,7 @@ export function Ribbon() {
         const isLast = index === steps.length - 1
 
         return (
-          <div key={step.nodeId}>
+          <div key={step.nodeId} data-node-id={step.nodeId}>
             <SceneEditor
               node={node}
               onChangeDoc={(doc) => queueNodeDoc(node.id, doc)}

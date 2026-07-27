@@ -191,8 +191,10 @@ export type ThemeMode = 'light' | 'dark'
 
 export interface Settings {
   key: 'settings'
-  theme: ThemeMode
   lastProjectId: Id | null
   /** Когда последний раз выгружали копию — для напоминания об экспорте. */
   lastExportAt: number | null
 }
+
+/** Режим работы: письмо или структура. Сценарий один и тот же. */
+export type ViewMode = 'write' | 'graph'

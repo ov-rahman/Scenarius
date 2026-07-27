@@ -11,6 +11,7 @@ import type {
   StoryNode,
   Storyline,
   ThemeMode,
+  ViewMode,
 } from '../model/types'
 
 const emptyDoc: RichDoc = { type: 'doc', content: [{ type: 'paragraph' }] }
@@ -26,6 +27,17 @@ const now = () => Date.now()
 const SAVE_DELAY = 400
 const pendingDocs = new Map<Id, RichDoc>()
 let flushTimer: number | undefined
+
+/*
+ * Тема живёт в localStorage, а не в IndexedDB: запись туда синхронная, поэтому
+ * переживает мгновенную перезагрузку, и её видно до старта React — иначе
+ * страница успевает моргнуть светлой темой перед тем, как загрузятся настройки.
+ */
+const THEME_KEY = 'scenarius:theme'
+
+export function readStoredTheme(): ThemeMode {
+  return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'
+}
 
 interface State {
   ready: boolean
@@ -48,6 +60,9 @@ interface State {
 
   /** Когда последний раз выгружали копию — для напоминания об экспорте. */
   lastExportAt: number | null
+
+  /** Письмо или структура — два режима одного и того же сценария. */
+  viewMode: ViewMode
 }
 
 interface Actions {
@@ -72,11 +87,14 @@ interface Actions {
   updateNodeTitle: (nodeId: Id, title: string) => Promise<void>
   chooseBranch: (nodeId: Id, linkId: Id) => void
   focusNode: (nodeId: Id | null) => void
+  setViewMode: (mode: ViewMode) => void
+  /** Узел подвинули на графе — позиция запоминается. */
+  moveNode: (nodeId: Id, position: { x: number; y: number }) => Promise<void>
 }
 
 export const useStore = create<State & Actions>((set, get) => ({
   ready: false,
-  theme: 'light',
+  theme: readStoredTheme(),
   projects: [],
   projectId: null,
   storylines: [],
@@ -88,6 +106,7 @@ export const useStore = create<State & Actions>((set, get) => ({
   choices: {},
   focusedNodeId: null,
   lastExportAt: null,
+  viewMode: 'write',
 
   async init() {
     const [settings, projects] = await Promise.all([
@@ -96,7 +115,7 @@ export const useStore = create<State & Actions>((set, get) => ({
     ])
 
     set({
-      theme: settings?.theme ?? 'light',
+      theme: readStoredTheme(),
       lastExportAt: settings?.lastExportAt ?? null,
       projects,
       ready: true,
@@ -110,7 +129,7 @@ export const useStore = create<State & Actions>((set, get) => ({
 
   async setTheme(theme) {
     set({ theme })
-    await persistSettings(get())
+    localStorage.setItem(THEME_KEY, theme)
   },
 
   async createProject(title) {
@@ -361,13 +380,23 @@ export const useStore = create<State & Actions>((set, get) => ({
   focusNode(nodeId) {
     set({ focusedNodeId: nodeId })
   },
+
+  setViewMode(viewMode) {
+    set({ viewMode })
+  },
+
+  async moveNode(nodeId, position) {
+    set({
+      nodes: get().nodes.map((n) => (n.id === nodeId ? { ...n, position } : n)),
+    })
+    await db.nodes.update(nodeId, { position })
+  },
 }))
 
 /** Настройки — одна запись, пишем её целиком из состояния. */
 async function persistSettings(state: State) {
   await db.settings.put({
     key: 'settings',
-    theme: state.theme,
     lastProjectId: state.projectId,
     lastExportAt: state.lastExportAt,
   })

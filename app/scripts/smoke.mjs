@@ -81,6 +81,25 @@ check(
   'Ветка 22/2',
 )
 
+// ─── Режим структуры ─────────────────────────────────────────────────────────
+
+await page.click('.modes button:has-text("структура")')
+await page.waitForSelector('.react-flow__node')
+await page.waitForTimeout(600)
+check('на графе три сцены', await page.locator('.react-flow__node').count(), 3)
+check('на графе две связи', await page.locator('.react-flow__edge').count(), 2)
+
+// Двойной клик уводит в письмо на этой сцене. Проверка не косметическая:
+// подсветка фокуса когда-то пересобирала список узлов между кликами,
+// и второй клик пропадал.
+await page.locator('.gnode').first().dblclick()
+await page.waitForTimeout(400)
+check(
+  'двойной клик увёл в письмо',
+  await page.locator('.modes button.is-on').innerText(),
+  'письмо',
+)
+
 check('ошибок в консоли нет', consoleErrors, [])
 
 await browser.close()

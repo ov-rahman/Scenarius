@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store/useStore'
+import { Graph } from './Graph'
 import { Ribbon } from './Ribbon'
 
 export function App() {
@@ -10,6 +11,8 @@ export function App() {
   const projects = useStore((s) => s.projects)
   const init = useStore((s) => s.init)
   const closeProject = useStore((s) => s.closeProject)
+  const viewMode = useStore((s) => s.viewMode)
+  const setViewMode = useStore((s) => s.setViewMode)
 
   useEffect(() => {
     void init()
@@ -55,7 +58,28 @@ export function App() {
         </button>
       </header>
 
-      <main className="content">{projectId ? <Ribbon /> : <ProjectList />}</main>
+      <main className={`content${viewMode === 'graph' && projectId ? ' content--full' : ''}`}>
+        {projectId ? viewMode === 'graph' ? <Graph /> : <Ribbon /> : <ProjectList />}
+      </main>
+
+      {projectId && (
+        <nav className="modes">
+          <button
+            type="button"
+            className={viewMode === 'write' ? 'is-on' : ''}
+            onClick={() => setViewMode('write')}
+          >
+            письмо
+          </button>
+          <button
+            type="button"
+            className={viewMode === 'graph' ? 'is-on' : ''}
+            onClick={() => setViewMode('graph')}
+          >
+            структура
+          </button>
+        </nav>
+      )}
     </div>
   )
 }
