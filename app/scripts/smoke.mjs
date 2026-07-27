@@ -48,16 +48,16 @@ await page.locator('.inserter').first().getByText('+ развилка').click()
 await page.waitForSelector('.branches__switch')
 check('лента осталась на выбранной ветке', await page.locator('.scene').count(), 2)
 check(
-  'переключатель показывает 1 из 2',
+  'лента перешла на новую ветку',
   (await page.locator('.branches__label').first().innerText()).replace(/\s+/g, ' '),
-  'Ветка 11/2',
+  'Ветка 22/2',
 )
 
 await page.locator('.branches__switch button').last().click()
 check(
   'ветка переключилась',
   (await page.locator('.branches__label').first().innerText()).replace(/\s+/g, ' '),
-  'Ветка 22/2',
+  'Ветка 11/2',
 )
 
 await page.click('.topbar__theme')
@@ -78,8 +78,47 @@ check(
 check(
   'выбранная ветка пережила перезагрузку',
   (await page.locator('.branches__label').first().innerText()).replace(/\s+/g, ' '),
-  'Ветка 22/2',
+  'Ветка 11/2',
 )
+
+// ─── Факты и условия ─────────────────────────────────────────────────────────
+
+// Ключевой момент в первой сцене — он же станет условием на ветке.
+await page.locator('.scene__body .tiptap').first().click()
+await page.locator('.panel__add input').fill('Пощадил Папируса')
+await page.locator('.panel__add button').click()
+await page.waitForTimeout(300)
+check('факт появился в панели', await page.locator('.panel__list li').count(), 1)
+
+// Запрещаем факт на текущей ветке — она обязана стать недоступной.
+await page.locator('.branches__edit').first().click()
+await page.waitForSelector('.cond__chip')
+const chip = page.locator('.branches__item').nth(1).locator('.cond__chip').first()
+await chip.click()
+await page.waitForTimeout(150)
+await chip.click()
+await page.waitForTimeout(400)
+check(
+  'запрет отсёк ветку',
+  await page.locator('.branches__blocked').count() > 0,
+  true,
+)
+
+// Панель не должна целиться в сцену, которой нет в ленте.
+const target = (await page.locator('.panel__target').innerText())
+  .replace('в сцене «', '')
+  .replace('»', '')
+const titles = await page
+  .locator('.scene__title')
+  .evaluateAll((els) => els.map((e) => e.value || 'без названия'))
+check('цель панели видна в ленте', titles.includes(target), true)
+
+// Задел висит, пока не привязан узел-отыгрыша.
+await page.click('.panel__tabs button:has-text("заделы")')
+await page.locator('.panel__add input').fill('Кто-то следит из темноты')
+await page.locator('.panel__add button').click()
+await page.waitForTimeout(300)
+check('счётчик незакрытых заделов', await page.locator('.panel__tabs em').innerText(), '1')
 
 // ─── Режим структуры ─────────────────────────────────────────────────────────
 

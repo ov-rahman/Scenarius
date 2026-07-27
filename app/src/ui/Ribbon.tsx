@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { buildPath, type PathStep } from '../model/path'
 import { useStore } from '../store/useStore'
+import { ConditionEditor } from './FactsPanel'
 import { SceneEditor } from './SceneEditor'
 
 /**
@@ -66,11 +67,14 @@ export function Ribbon() {
   )
 }
 
-/** Переключатель веток и напоминание о тех, что отсечены условием. */
+/** Переключатель веток, их условия и напоминание о тех, что отсечены. */
 function BranchBar({ step }: { step: PathStep }) {
   const chooseBranch = useStore((s) => s.chooseBranch)
+  const setLinkLabel = useStore((s) => s.setLinkLabel)
+  const [editing, setEditing] = useState(false)
 
-  if (step.available.length <= 1 && step.blocked.length === 0) return null
+  const branches = [...step.available, ...step.blocked]
+  if (branches.length <= 1) return null
 
   const position = step.available.findIndex((l) => l.id === step.chosenLinkId)
   const shift = (delta: number) => {
@@ -99,11 +103,34 @@ function BranchBar({ step }: { step: PathStep }) {
         </div>
       )}
 
+      <button
+        type="button"
+        className="branches__edit"
+        onClick={() => setEditing((on) => !on)}
+      >
+        {editing ? 'свернуть' : 'ветки и условия'}
+      </button>
+
       {step.blocked.map((link) => (
         <p key={link.id} className="branches__blocked">
           «{link.label || 'без названия'}» — недоступна на этом пути
         </p>
       ))}
+
+      {editing && (
+        <div className="branches__editor">
+          {branches.map((link) => (
+            <div key={link.id} className="branches__item">
+              <input
+                value={link.label}
+                placeholder="Название ветки"
+                onChange={(event) => void setLinkLabel(link.id, event.target.value)}
+              />
+              <ConditionEditor linkId={link.id} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

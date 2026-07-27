@@ -3,7 +3,9 @@ import { create } from 'zustand'
 import { db, SCHEMA_VERSION } from '../model/db'
 import type {
   Character,
+  Condition,
   Fact,
+  FactFace,
   Id,
   Link,
   Project,
@@ -87,6 +89,11 @@ interface Actions {
   updateNodeTitle: (nodeId: Id, title: string) => Promise<void>
   chooseBranch: (nodeId: Id, linkId: Id) => void
   focusNode: (nodeId: Id | null) => void
+  addFact: (face: FactFace, title: string, nodeId: Id) => Promise<Id>
+  updateFact: (factId: Id, patch: Partial<Fact>) => Promise<void>
+  removeFact: (factId: Id) => Promise<void>
+  setLinkCondition: (linkId: Id, condition: Condition | null) => Promise<void>
+  setLinkLabel: (linkId: Id, label: string) => Promise<void>
   setViewMode: (mode: ViewMode) => void
   /** Узел подвинули на графе — позиция запоминается. */
   moveNode: (nodeId: Id, position: { x: number; y: number }) => Promise<void>
@@ -150,7 +157,7 @@ export const useStore = create<State & Actions>((set, get) => ({
       id: nanoid(),
       projectId: id,
       title: 'Основная линия',
-      color: '#4f46e5',
+      color: '#bf5b39',
       parentId: null,
       order: 0,
     }
@@ -334,6 +341,10 @@ export const useStore = create<State & Actions>((set, get) => ({
       focusedNodeId: node.id,
     })
 
+    // Лента переходит на свежую ветку. Иначе новая сцена оказывается вне
+    // активного пути: её не видно, а панели при этом целятся именно в неё.
+    get().chooseBranch(fromNodeId, link.id)
+
     return node.id
   },
 
@@ -379,6 +390,86 @@ export const useStore = create<State & Actions>((set, get) => ({
 
   focusNode(nodeId) {
     set({ focusedNodeId: nodeId })
+  },
+
+  async addFact(face, title, nodeId) {
+    const { projectId } = get()
+    if (!projectId) throw new Error('Проект не открыт')
+
+    const stamp = now()
+    const fact: Fact = {
+      id: nanoid(),
+      projectId,
+      face,
+      title: title.trim(),
+      description: '',
+      originNodeId: nodeId,
+      characterId: null,
+      payoffNodeId: null,
+      closedManually: false,
+      createdAt: stamp,
+      updatedAt: stamp,
+    }
+
+    await db.facts.add(fact)
+    set({ facts: [...get().facts, fact] })
+
+    // Сцена, в которой что-то случается, помечается ключевой — так её видно
+    // на графе, не открывая панель.
+    if (face === 'moment') {
+      const node = get().nodes.find((n) => n.id === nodeId)
+      if (node && node.kind === 'normal') {
+        await db.nodes.update(nodeId, { kind: 'key' })
+        set({
+          nodes: get().nodes.map((n) => (n.id === nodeId ? { ...n, kind: 'key' } : n)),
+        })
+      }
+    }
+
+    return fact.id
+  },
+
+  async updateFact(factId, patch) {
+    const updatedAt = now()
+    set({
+      facts: get().facts.map((f) => (f.id === factId ? { ...f, ...patch, updatedAt } : f)),
+    })
+    await db.facts.update(factId, { ...patch, updatedAt })
+  },
+
+  async removeFact(factId) {
+    // Факт мог быть условием на ветке — иначе останется ссылка в никуда,
+    // и ветка окажется навсегда недоступной.
+    const links = get().links.map((link) => {
+      if (!link.condition) return link
+      const all = link.condition.all.filter((id) => id !== factId)
+      const none = link.condition.none.filter((id) => id !== factId)
+      if (all.length === link.condition.all.length && none.length === link.condition.none.length) {
+        return link
+      }
+      return { ...link, condition: all.length || none.length ? { all, none } : null }
+    })
+
+    await db.transaction('rw', [db.facts, db.links], async () => {
+      await db.facts.delete(factId)
+      for (const link of links) {
+        await db.links.update(link.id, { condition: link.condition })
+      }
+    })
+
+    set({ facts: get().facts.filter((f) => f.id !== factId), links })
+  },
+
+  async setLinkCondition(linkId, condition) {
+    set({
+      links: get().links.map((l) => (l.id === linkId ? { ...l, condition } : l)),
+    })
+    await db.links.update(linkId, { condition })
+  },
+
+  async setLinkLabel(linkId, label) {
+    set({ links: get().links.map((l) => (l.id === linkId ? { ...l, label } : l)) })
+    await db.links.update(linkId, { label })
   },
 
   setViewMode(viewMode) {

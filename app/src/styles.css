@@ -3,12 +3,15 @@
  * дерево React при этом не перерисовывается.
  */
 :root {
-  --bg: #fbfbfa;
+  --bg: #faf9f5;
   --surface: #ffffff;
-  --text: #1c1b1a;
-  --muted: #75736e;
-  --line: #e4e2dd;
-  --accent: #4f46e5;
+  --text: #1f1e1c;
+  --muted: #6f6b63;
+  --line: #e6e2d9;
+  /* Тёплая терракота. В светлой теме берём затемнённый оттенок: на нём лежит
+     белый текст кнопок, и светлая версия не дотягивает по контрасту. */
+  --accent: #bf5b39;
+  --on-accent: #ffffff;
 
   --measure: 34rem;
 
@@ -16,12 +19,14 @@
 }
 
 :root[data-theme='dark'] {
-  --bg: #17181a;
-  --surface: #1f2023;
-  --text: #e8e6e3;
-  --muted: #8d8b86;
-  --line: #33353a;
-  --accent: #8b85f0;
+  --bg: #1a1815;
+  --surface: #232019;
+  --text: #ece8e1;
+  --muted: #918c82;
+  --line: #38342c;
+  /* В тёмной теме наоборот: акцент светлее фона, поэтому текст на нём тёмный. */
+  --accent: #e08a6b;
+  --on-accent: #1a1614;
 
   color-scheme: dark;
 }
@@ -120,7 +125,7 @@ input {
 
 .projects__new button {
   padding: 0.6rem 1rem;
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent);
   border-radius: 8px;
 }
@@ -328,7 +333,7 @@ input {
 }
 
 .modes button.is-on {
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent);
 }
 
@@ -441,4 +446,211 @@ input {
   .graph {
     height: calc(100vh - 3.25rem);
   }
+}
+
+/* ── Рабочая область ────────────────────────────────────────────────────── */
+
+/*
+ * ПК: лента в центре, контекстная панель справа. Телефон: панель уезжает
+ * под ленту — тач-шторка появится вместе с мобильным слоем.
+ */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr minmax(240px, 320px);
+  gap: 2rem;
+  align-items: start;
+  max-width: 62rem;
+  margin: 0 auto;
+}
+
+.workspace .ribbon {
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+/* ── Панель фактов ──────────────────────────────────────────────────────── */
+
+.panel {
+  position: sticky;
+  top: 4.5rem;
+  font-size: 0.875rem;
+}
+
+.panel__tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.panel__tabs button {
+  padding: 0.25rem 0.6rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+
+.panel__tabs button.is-on {
+  color: var(--text);
+  border-color: var(--line);
+}
+
+.panel__tabs em {
+  margin-left: 0.35rem;
+  padding: 0 0.35rem;
+  color: var(--on-accent);
+  font-size: 0.6875rem;
+  font-style: normal;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.panel__add {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.panel__add input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.panel__add button {
+  width: 2rem;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.panel__add button:disabled {
+  opacity: 0.4;
+}
+
+.panel__target,
+.panel__empty {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.panel__list {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panel__list li {
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.panel__list li.is-closed .panel__title {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.panel__row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.panel__remove {
+  color: var(--muted);
+  line-height: 1;
+}
+
+.panel__where {
+  margin: 0.15rem 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.panel__off {
+  opacity: 0.8;
+}
+
+.panel select {
+  width: 100%;
+  padding: 0.25rem;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+/* ── Условия на ветках ──────────────────────────────────────────────────── */
+
+.branches__edit {
+  margin-left: 0.5rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  text-decoration: underline dotted;
+}
+
+.branches__editor {
+  margin-top: 0.6rem;
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.branches__item + .branches__item {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.branches__item input {
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.cond {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+}
+
+.cond__empty {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+/* Три состояния одной фишки: неважно, требуется, запрещено. */
+.cond__chip {
+  padding: 0.15rem 0.5rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.cond__chip--need {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.cond__chip--ban {
+  color: var(--muted);
+  border-style: dashed;
+  text-decoration: line-through;
 }

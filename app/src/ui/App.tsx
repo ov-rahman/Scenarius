@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store/useStore'
+import { FactsPanel } from './FactsPanel'
 import { Graph } from './Graph'
 import { Ribbon } from './Ribbon'
 
@@ -59,7 +60,14 @@ export function App() {
       </header>
 
       <main className={`content${viewMode === 'graph' && projectId ? ' content--full' : ''}`}>
-        {projectId ? viewMode === 'graph' ? <Graph /> : <Ribbon /> : <ProjectList />}
+        {!projectId && <ProjectList />}
+        {projectId && viewMode === 'graph' && <Graph />}
+        {projectId && viewMode === 'write' && (
+          <div className="workspace">
+            <Ribbon />
+            <FactsPanel />
+          </div>
+        )}
       </main>
 
       {projectId && (
