@@ -1,0 +1,283 @@
+/*
+ * Темы живут на CSS-переменных: переключение меняет один атрибут на <html>,
+ * дерево React при этом не перерисовывается.
+ */
+:root {
+  --bg: #fbfbfa;
+  --surface: #ffffff;
+  --text: #1c1b1a;
+  --muted: #75736e;
+  --line: #e4e2dd;
+  --accent: #4f46e5;
+
+  --measure: 34rem;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #17181a;
+  --surface: #1f2023;
+  --text: #e8e6e3;
+  --muted: #8d8b86;
+  --line: #33353a;
+  --accent: #8b85f0;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+input {
+  font: inherit;
+  color: inherit;
+}
+
+.loading {
+  padding: 4rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── Каркас ─────────────────────────────────────────────────────────────── */
+
+.app {
+  min-height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar__brand,
+.topbar__back {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.topbar__title {
+  flex: 1;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.topbar__theme {
+  font-size: 1.125rem;
+  color: var(--muted);
+}
+
+.content {
+  padding: 2rem 1.25rem 6rem;
+}
+
+/* ── Проекты ────────────────────────────────────────────────────────────── */
+
+.projects {
+  max-width: var(--measure);
+  margin: 0 auto;
+}
+
+.projects__new {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.projects__new input {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.projects__new button {
+  padding: 0.6rem 1rem;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 8px;
+}
+
+.projects__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.projects__list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.projects__list button {
+  width: 100%;
+  padding: 0.9rem 0.25rem;
+  text-align: left;
+}
+
+.projects__hint {
+  color: var(--muted);
+}
+
+/* ── Лента письма ───────────────────────────────────────────────────────── */
+
+.ribbon {
+  max-width: var(--measure);
+  margin: 0 auto;
+}
+
+.ribbon__empty {
+  color: var(--muted);
+  text-align: center;
+}
+
+.scene__title {
+  width: 100%;
+  padding: 0;
+  margin-bottom: 0.25rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  outline: none;
+}
+
+.scene__title::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.scene__body .tiptap {
+  outline: none;
+}
+
+.scene__body p {
+  margin: 0 0 0.75rem;
+}
+
+/* Подсказка пустого абзаца — иначе пустая сцена выглядит сломанной. */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* ── Развилки ───────────────────────────────────────────────────────────── */
+
+.branches {
+  margin: 0.5rem 0 0;
+}
+
+.branches__switch {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.branches__label em {
+  margin-left: 0.5rem;
+  font-style: normal;
+  opacity: 0.7;
+}
+
+.branches__blocked {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  opacity: 0.75;
+}
+
+/* ── Плюсик между блоками ───────────────────────────────────────────────── */
+
+.inserter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+}
+
+.inserter__line {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--line);
+  opacity: 0;
+  /* Линия чисто декоративная и проходит ровно по центру кнопок — без этого
+     она перехватывает клик по «+ сцена». */
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.inserter__actions {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.125rem;
+  background: var(--bg);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.inserter:hover .inserter__line,
+.inserter:hover .inserter__actions,
+.inserter:focus-within .inserter__actions {
+  opacity: 1;
+}
+
+.inserter__actions button {
+  padding: 0.25rem 0.625rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.inserter__actions button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/*
+ * На тач-устройствах наведения нет — кнопки видны всегда, иначе создать сцену
+ * пальцем невозможно.
+ */
+@media (hover: none) {
+  .inserter__actions {
+    opacity: 1;
+  }
+}

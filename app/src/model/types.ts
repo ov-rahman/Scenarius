@@ -10,11 +10,21 @@
  *  - расклад фактов вычисляется из активного пути, а не задаётся руками.
  */
 
-/** Документ Tiptap (ProseMirror JSON). Хранится как есть. */
-export type RichDoc = {
-  type: 'doc'
-  content?: unknown[]
+/**
+ * Документ ProseMirror в виде JSON. Описан структурно, а не импортом из Tiptap:
+ * модель не должна зависеть от редактора — при переносе на мобильную платформу
+ * редактор может смениться, а формат хранения останется прежним.
+ */
+export interface RichNode {
+  type?: string
+  attrs?: Record<string, unknown>
+  content?: RichNode[]
+  marks?: Array<{ type: string; attrs?: Record<string, unknown> }>
+  text?: string
+  [key: string]: unknown
 }
+
+export type RichDoc = RichNode & { type: 'doc' }
 
 export type Id = string
 
