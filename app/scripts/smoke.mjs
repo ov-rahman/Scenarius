@@ -153,6 +153,47 @@ await page.click('.topbar__title')
 await page.waitForTimeout(200)
 check('карточка закрылась по клику мимо', await page.locator('.card').count(), 0)
 
+// ─── Условный текст внутри сцены ─────────────────────────────────────────────
+
+await page.locator('.scene__body .tiptap').first().click()
+await page.keyboard.press('Control+End')
+await page.keyboard.press('Enter')
+await page.keyboard.type('Она смотрит иначе.')
+await page.waitForTimeout(300)
+
+// Выделяем абзац и оборачиваем в условие через меню выделения.
+await page.keyboard.press('Home')
+await page.keyboard.down('Shift')
+await page.keyboard.press('End')
+await page.keyboard.up('Shift')
+await page.waitForTimeout(400)
+await page.locator('.bubble button:has-text("сделать условным")').click()
+await page.waitForTimeout(400)
+check('условный блок создан', await page.locator('.cblock').count(), 1)
+check('без условия блок виден', await page.locator('.cblock__state').innerText(), 'виден')
+
+// Запрещаем факт, который на этом пути есть — блок обязан погаснуть.
+await page.locator('.cblock__cond').click()
+await page.waitForSelector('.cblock__editor .cond__chip')
+const blockChip = page.locator('.cblock__editor .cond__chip').first()
+await blockChip.click()
+await page.waitForTimeout(150)
+await blockChip.click()
+await page.waitForTimeout(400)
+check('запрет погасил блок', await page.locator('.cblock__state').innerText(), 'скрыт')
+check('блок помечен как скрытый', await page.locator('.cblock--hidden').count(), 1)
+
+await page.waitForTimeout(600)
+await page.reload({ waitUntil: 'networkidle' })
+await page.waitForSelector('.scene')
+await page.waitForTimeout(400)
+check('блок пережил перезагрузку', await page.locator('.cblock').count(), 1)
+check(
+  'условие пережило перезагрузку',
+  await page.locator('.cblock__state').innerText(),
+  'скрыт',
+)
+
 // ─── Режим структуры ─────────────────────────────────────────────────────────
 
 await page.click('.modes button:has-text("структура")')

@@ -811,3 +811,78 @@ input {
   font-size: 0.75rem;
   font-weight: 500;
 }
+
+/* ── Условный блок текста ───────────────────────────────────────────────── */
+
+/*
+ * Кусок сцены, который виден не всегда. Скрытый на текущем раскладе блок
+ * не прячем совсем — автор должен видеть, что он существует, иначе текст
+ * начнёт пропадать без объяснений.
+ */
+.cblock {
+  margin: 0.6rem 0;
+  padding: 0.5rem 0.7rem;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+.cblock--hidden {
+  border-left-style: dashed;
+  opacity: 0.45;
+}
+
+.cblock__head {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+}
+
+.cblock__cond {
+  color: var(--accent);
+  font-size: 0.75rem;
+  text-decoration: underline dotted;
+}
+
+.cblock__state {
+  flex: 1;
+  color: var(--muted);
+}
+
+.cblock__drop {
+  color: var(--muted);
+  line-height: 1;
+}
+
+.cblock__editor {
+  margin-bottom: 0.4rem;
+}
+
+.cblock__body p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Всплывающее меню выделения ─────────────────────────────────────────── */
+
+.bubble {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 12%);
+}
+
+.bubble button {
+  padding: 0.25rem 0.7rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  border-radius: 999px;
+}
+
+.bubble button:hover {
+  color: var(--accent);
+}
