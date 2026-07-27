@@ -654,3 +654,160 @@ input {
   border-style: dashed;
   text-decoration: line-through;
 }
+
+/* ── Упоминания персонажей ──────────────────────────────────────────────── */
+
+.mention {
+  padding: 0 0.15em;
+  color: var(--accent);
+  cursor: pointer;
+  border-bottom: 1px dotted var(--accent);
+}
+
+.mention-menu {
+  position: fixed;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  min-width: 10rem;
+  padding: 0.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+
+.mention-menu__item {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.875rem;
+  text-align: left;
+  border-radius: 6px;
+}
+
+.mention-menu__item.is-on {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.mention-menu__empty {
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+/* ── Карточка персонажа ─────────────────────────────────────────────────── */
+
+.card {
+  position: fixed;
+  z-index: 40;
+  width: 17rem;
+  padding: 0.85rem;
+  font-size: 0.8125rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 14%);
+}
+
+.card__name {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.card__aliases {
+  margin: 0.1rem 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.card__line {
+  margin: 0.5rem 0 0;
+}
+
+.card__line span {
+  color: var(--muted);
+}
+
+.card__section {
+  margin: 0.85rem 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: lowercase;
+}
+
+.card__facts,
+.panel__timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card__facts li,
+.panel__timeline li {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: space-between;
+  padding: 0.2rem 0;
+  color: var(--muted);
+}
+
+/* Знает уже — обычным текстом; узнает позже — приглушённо. */
+.card__facts li.is-known {
+  color: var(--text);
+}
+
+.card__facts em,
+.panel__timeline em {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.6875rem;
+  font-style: normal;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+}
+
+.card__empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.panel__toggle {
+  padding: 0;
+  text-align: left;
+  text-decoration: underline dotted;
+}
+
+.panel__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.panel__fields input,
+.panel__fields textarea {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  resize: vertical;
+}
+
+.panel__fields textarea {
+  min-height: 2.5rem;
+}
+
+.panel__section {
+  margin: 0.5rem 0 0.2rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}

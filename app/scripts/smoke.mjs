@@ -120,6 +120,39 @@ await page.locator('.panel__add button').click()
 await page.waitForTimeout(300)
 check('счётчик незакрытых заделов', await page.locator('.panel__tabs em').innerText(), '1')
 
+// ─── Персонажи и упоминания ──────────────────────────────────────────────────
+
+await page.click('.panel__tabs button:has-text("персонажи")')
+await page.locator('.panel__add input').fill('Папирус')
+await page.locator('.panel__add button').click()
+await page.waitForTimeout(300)
+
+// `@` подсказывает по началу имени и вставляет ссылку, а не голый текст.
+await page.locator('.scene__body .tiptap').first().click()
+await page.keyboard.press('End')
+await page.keyboard.type(' Навстречу выбегает @Пап')
+await page.waitForTimeout(400)
+check('подсказка нашла персонажа', await page.locator('.mention-menu__item').count(), 1)
+await page.keyboard.press('Enter')
+await page.waitForTimeout(300)
+check('упоминание вставилось', await page.locator('.mention').count(), 1)
+
+// Знание в первой сцене — персонаж обязан знать его здесь и не знать раньше.
+await page.click('.panel__tabs button:has-text("знания")')
+await page.locator('.scene__body .tiptap').first().click()
+await page.locator('.panel__add input').fill('Что человек не опасен')
+await page.locator('.panel__add button').click()
+await page.waitForTimeout(300)
+await page.locator('.panel__list select').first().selectOption({ label: 'Папирус' })
+await page.waitForTimeout(400)
+
+await page.locator('.mention').first().click()
+await page.waitForSelector('.card')
+check('карточка знает факт этой сцены', await page.locator('.card__facts li.is-known').count(), 1)
+await page.click('.topbar__title')
+await page.waitForTimeout(200)
+check('карточка закрылась по клику мимо', await page.locator('.card').count(), 0)
+
 // ─── Режим структуры ─────────────────────────────────────────────────────────
 
 await page.click('.modes button:has-text("структура")')

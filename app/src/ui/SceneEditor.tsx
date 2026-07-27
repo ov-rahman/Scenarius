@@ -1,6 +1,7 @@
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Placeholder } from '@tiptap/extension-placeholder'
+import { CharacterMention } from './mention'
 import type { RichDoc, StoryNode } from '../model/types'
 
 interface Props {
@@ -14,7 +15,11 @@ interface Props {
 export function SceneEditor({ node, onChangeDoc, onChangeTitle, onFocus }: Props) {
   const editor = useEditor(
     {
-      extensions: [StarterKit, Placeholder.configure({ placeholder: 'Пиши сцену…' })],
+      extensions: [
+        StarterKit,
+        Placeholder.configure({ placeholder: 'Пиши сцену…' }),
+        CharacterMention,
+      ],
       content: node.doc,
       onFocus,
       onUpdate({ editor }) {

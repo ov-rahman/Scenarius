@@ -89,6 +89,9 @@ interface Actions {
   updateNodeTitle: (nodeId: Id, title: string) => Promise<void>
   chooseBranch: (nodeId: Id, linkId: Id) => void
   focusNode: (nodeId: Id | null) => void
+  addCharacter: (name: string) => Promise<Id>
+  updateCharacter: (characterId: Id, patch: Partial<Character>) => Promise<void>
+  removeCharacter: (characterId: Id) => Promise<void>
   addFact: (face: FactFace, title: string, nodeId: Id) => Promise<Id>
   updateFact: (factId: Id, patch: Partial<Fact>) => Promise<void>
   removeFact: (factId: Id) => Promise<void>
@@ -390,6 +393,52 @@ export const useStore = create<State & Actions>((set, get) => ({
 
   focusNode(nodeId) {
     set({ focusedNodeId: nodeId })
+  },
+
+  async addCharacter(name) {
+    const { projectId } = get()
+    if (!projectId) throw new Error('Проект не открыт')
+
+    const character: Character = {
+      id: nanoid(),
+      projectId,
+      name: name.trim(),
+      aliases: [],
+      personality: '',
+      motivation: '',
+      manner: '',
+      color: '#bf5b39',
+    }
+
+    await db.characters.add(character)
+    set({ characters: [...get().characters, character] })
+    return character.id
+  },
+
+  async updateCharacter(characterId, patch) {
+    set({
+      characters: get().characters.map((c) =>
+        c.id === characterId ? { ...c, ...patch } : c,
+      ),
+    })
+    await db.characters.update(characterId, patch)
+  },
+
+  async removeCharacter(characterId) {
+    // Знания осиротевшего персонажа остаются фактами, но теряют владельца:
+    // текст сцены их упоминает, и молча стирать его смысл нельзя.
+    const facts = get().facts.map((f) =>
+      f.characterId === characterId ? { ...f, characterId: null } : f,
+    )
+
+    await db.transaction('rw', [db.characters, db.facts], async () => {
+      await db.characters.delete(characterId)
+      for (const fact of facts) {
+        if (fact.characterId === null) await db.facts.update(fact.id, { characterId: null })
+      }
+    })
+
+    set({ characters: get().characters.filter((c) => c.id !== characterId), facts })
   },
 
   async addFact(face, title, nodeId) {

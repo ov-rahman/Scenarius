@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store/useStore'
+import { CharacterCard } from './CharacterCard'
 import { FactsPanel } from './FactsPanel'
 import { Graph } from './Graph'
 import { Ribbon } from './Ribbon'
@@ -66,6 +67,7 @@ export function App() {
           <div className="workspace">
             <Ribbon />
             <FactsPanel />
+            <CharacterCard />
           </div>
         )}
       </main>

@@ -12,10 +12,12 @@
   },
   "dependencies": {
     "@dagrejs/dagre": "^3.0.0",
+    "@tiptap/extension-mention": "^3.29.0",
     "@tiptap/extension-placeholder": "^3.29.0",
     "@tiptap/pm": "^3.29.0",
     "@tiptap/react": "^3.29.0",
     "@tiptap/starter-kit": "^3.29.0",
+    "@tiptap/suggestion": "^3.29.0",
     "@xyflow/react": "^12.11.2",
     "dexie": "^4.4.4",
     "nanoid": "^6.0.0",
