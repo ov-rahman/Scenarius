@@ -1,18 +1,18 @@
-name: Публикация на GitHub Pages
+name: Сборка приложения для Pages
 
 on:
   push:
     branches: [main]
+    # Собранный файл коммитится этим же процессом — не гоняем сборку по кругу.
+    paths-ignore:
+      - index.html
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Параллельные публикации не нужны: важна последняя.
 concurrency:
-  group: pages
+  group: pages-build
   cancel-in-progress: true
 
 jobs:
@@ -34,22 +34,20 @@ jobs:
       - run: pnpm install --frozen-lockfile
         working-directory: app
 
-      # Сайт живёт в подпапке репозитория, поэтому пути к файлам — относительные.
-      - run: pnpm build --base=./
+      # Одним самодостаточным файлом: Pages настроен на выдачу файлов ветки,
+      # и отдельные ресурсы в подпапках он бы не отдал по нужным путям.
+      - run: pnpm bundle
         working-directory: app
 
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: app/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Обновить index.html в корне
+        run: |
+          cp app/dist/scenarius.html index.html
+          if git diff --quiet index.html; then
+            echo "Приложение не изменилось — коммит не нужен"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Пересобрать приложение для Pages"
+          git push

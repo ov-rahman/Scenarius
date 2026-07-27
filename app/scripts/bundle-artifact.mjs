@@ -38,5 +38,19 @@ ${safeScript}
 
 writeFileSync(join(DIST, 'artifact.html'), html)
 
-const kb = Math.round(Buffer.byteLength(html) / 1024)
-console.log(`dist/artifact.html — ${kb} КБ, внешних запросов нет`)
+// Полноценный документ: его можно открыть с диска и отдать как сайт.
+const page = `<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+${html}</body>
+</html>
+`
+
+writeFileSync(join(DIST, 'scenarius.html'), page)
+
+const kb = Math.round(Buffer.byteLength(page) / 1024)
+console.log(`dist/scenarius.html — ${kb} КБ, внешних запросов нет`)
